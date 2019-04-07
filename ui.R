@@ -19,7 +19,8 @@ shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(
       h5("Please choose a subgroup of the available animals. There are 65 species, three of which are dinosaurs, 10 of which rodents and 10 of which primates. 
-         You will see the regression line on the right and a summary of the model below."),
+         You will see the regression line on the right and a summary of the model below.
+         Don't forget to click the Submit button to see the effect of your choices!"),
       radioButtons("animal_group", "Regression on the groups of:",
                    c("All animals" = "all",
                      "Exclude dinosaurs" = "nodino",
