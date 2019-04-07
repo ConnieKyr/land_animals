@@ -38,10 +38,14 @@ Animals3<-Animals2[!(row.names(Animals2) %in% dinos),]
 anim<-Animals3 %>% rownames_to_column('animal') %>% mutate(ratio=(brain)/((body)^0.75226))
 anim<-anim[order(anim$ratio, decreasing=TRUE),]
 anim$animal<-factor(anim$animal, levels = unique(anim$animal)[order(anim$ratio, decreasing = TRUE)])
-plot_ly(data = anim, x = ~animal, y = ~ratio, color = ~animal, type = 'bar') %>%  layout(showlegend = FALSE)
 ```
 
-### The ratios are calculated on the model of the no dino subgroup, because that model gave the best fit.
+```{r eval=TRUE, message=FALSE, warning=FALSE, echo=TRUE}
+# The ratios are calculated on the model of the no dino subgroup, 
+#because that model gave the best fit.
+plot_ly(data = anim, x = ~animal, y = ~ratio, color = ~animal, type = 'bar') %>%  
+  layout(showlegend = FALSE)
+```
 
 
 ## Main server-side computations:
