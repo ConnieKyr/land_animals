@@ -1,0 +1,89 @@
+---
+title: "The land animals app"
+author: "Konstantina Kyriakouli"
+date: "April 5, 2019"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Motivation:
+
+Looking at the dataset **Animals2**, available in R, which contains average brain and body weights for 62 species of land mammals and three dinosaurs, we wanted to answer the question of **how well the body weight predicts the brain weight of a land animal**.
+
+At the same time, we were interested to know how well this prediction works if we split our group into **subgroups**, for example
+if we have a group only with rodents, or one only with primates, or one without the dinosaurs.
+Also, are there outliers in the main group and in the subgroups? If yes, which animals are those **outliers**?
+
+Animal data is coming from: 
+
+*Weisberg, S. (1985) Applied Linear Regression. 2nd edition. Wiley, pp. 144–5.; P. J. Rousseeuw and A. M. Leroy (1987) Robust Regression and Outlier Detection. Wiley, p. 57.*
+
+
+## Brain/body ratios of Animals:
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+library(plotly)
+library(dplyr)
+library(MASS)
+library(tibble)
+data(Animals)
+Animals2 <- local({D <- rbind(Animals, mammals); unique(D[order(D$body,D$brain),])})
+dinos<-c("Dipliodocus", "Triceratops", "Brachiosaurus")
+Animals3<-Animals2[!(row.names(Animals2) %in% dinos),]
+anim<-Animals3 %>% rownames_to_column('animal') %>% mutate(ratio=(brain)/((body)^0.75226))
+anim<-anim[order(anim$ratio, decreasing=TRUE),]
+anim$animal<-factor(anim$animal, levels = unique(anim$animal)[order(anim$ratio, decreasing = TRUE)])
+plot_ly(data = anim, x = ~animal, y = ~ratio, color = ~animal, type = 'bar') %>%  layout(showlegend = FALSE)
+```
+
+### The ratios are calculated on the model of the no dino subgroup, because that model gave the best fit.
+
+
+## Main server-side computations:
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, echo=TRUE}
+#the exact library() calls can be found in the server.R file 
+#preparing the data:
+Animals2 <- local({D <- rbind(Animals, mammals); unique(D[order(D$body,D$brain),])})
+dinos<-c("Dipliodocus", "Triceratops", "Brachiosaurus")
+rodents<-c("Mouse", "Rat", "Chinchilla", "Ground squirrel", "Golden hamster", 
+           "Guinea pig", "Arctic ground squirrel", "African giant pouched rat", "Mountain beaver", "Yellow-bellied marmot")
+primates<-c("Human", "Gorilla", "Chimpanzee", "Baboon", "Verbet", "Slow loris", 
+            "Galago", "Owl monkey", "Rhesus monkey", "Potar monkey")
+Animals3<-Animals2[!(row.names(Animals2) %in% dinos),]
+Animals4<-Animals2[row.names(Animals2) %in% rodents,]
+Animals5<-Animals2[row.names(Animals2) %in% primates,]
+#fitting the model: -the dgroup is the data frame Animals2, Animals3, Animals4 
+#or Animals5 according to the user selection
+anim_fit<-lm(log(brain)~log(body), data=dgroup)
+#for the r.squared (variation explained):
+model<-summary(anim_fit)$r.squared
+#for the outlier detection (Cook's distance):
+cutoff <- 4/((nrow(dgroup)-length(anim_fit$coefficients)-2)) 
+plot(anim_fit, which=4, cook.levels=cutoff)
+```
+
+
+## Conclusions
+
+In general, we see that humans have the biggest brain/body weight ratio, while dinosaurs have the biggest body/brain weight ratio. Within the primates subgroup, we see that the human is an outlier for having bigger brain/body weight ratio, while the gorilla has the smallest brain/body weight ratio. 
+
+It would be very interesting to include many other morphological measurements and many more animals so as to be able to train a machine learning algorithm in identifying different animals (or groups of animals) based on their measurements.
+ 
+The models can be tried out in the app: https://konstantina.shinyapps.io/land_animals/
+
+And the server.R and ui.R files on github: https://github.com/ConnieKyr/land_animals
+
+
+
+
+
+
+
+
+
